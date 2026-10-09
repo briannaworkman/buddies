@@ -125,8 +125,18 @@ Installing from GitHub gives Claude Code its own copy, which the next update rep
 
 ```bash
 git clone https://github.com/briannaworkman/buddies ~/code/buddies
+```
+
+If you already installed Buddies from GitHub, remove that copy first:
+
+```bash
 claude plugin uninstall buddy@buddies
 claude plugin marketplace remove buddies
+```
+
+Then install from your clone:
+
+```bash
 claude plugin marketplace add ~/code/buddies
 claude plugin install buddy@buddies --scope user
 ```
