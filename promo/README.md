@@ -15,8 +15,9 @@ Two files aren't in the repo and go in `public/` before rendering:
 npm install
 npm run studio   # preview and scrub through it in the browser
 npm run render   # writes out/buddies-promo.mp4
+npm run thumbnail   # writes out/buddies-thumbnail.png, the cover image for posts
 ```
 
-`src/Promo.tsx` sets the order and length of each scene, `src/scenes.tsx` holds the scenes, and `src/Footage.tsx` crops the recording.
+`src/Promo.tsx` sets the order and length of each scene, `src/scenes.tsx` holds the scenes, `src/Footage.tsx` crops the recording, and `src/Thumbnail.tsx` is the cover image.
 
 Remotion is free for individuals and small teams; larger companies need a [company license](https://www.remotion.dev/license).
