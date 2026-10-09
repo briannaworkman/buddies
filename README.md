@@ -1,4 +1,4 @@
-# Buddies
+<p align="center"><img src="docs/banner.png" alt="Buddies: a pixel pet that lives above your Claude Code prompt. Free and open source." width="100%"></p>
 
 A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, can watch your PRs, Slack mentions and meetings, and can post to a shared leaderboard with your friends.
 
@@ -153,7 +153,7 @@ Each species' art is in `hooks/species.ts`: `ascii` is the terminal version, `ro
 
 The leaderboard page in `leaderboard/` uses the same sprites. After changing the art or `leaderboard/page.ts`, rebuild it with `node scripts/build-leaderboard.mjs`.
 
-The pictures in this README are drawn from the same sprites. After changing the art, redraw them with `npx tsx scripts/readme-art.ts`.
+The pictures in this README are drawn from the same sprites. After changing the art, redraw them with `npx tsx scripts/readme-art.ts`. The banner at the top comes from the promo project: `npm run social` in `promo/`, then copy `promo/out/buddies-social-preview.png` to `docs/banner.png`.
 
 `hooks/register.tsx` is the only file that talks to Claude Code. The other files are plain functions, covered by the tests in `tests/`. Run them with `claude plugin test ~/code/buddies`.
 
