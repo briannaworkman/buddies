@@ -357,6 +357,10 @@ export const Outro: React.FC = () => {
           )
         })}
       </div>
+      {/* Bensound's free license asks for this credit; it's in the post text too. */}
+      <div style={{ position: 'absolute', top: 1250, left: 0, right: 0, textAlign: 'center', fontFamily: FONT.body, fontSize: 24, color: C.muted, opacity: usePop(64, 16) * 0.85 }}>
+        Music: Cozy Coffeehouse by Lunar Years · bensound.com
+      </div>
     </AbsoluteFill>
   )
 }
