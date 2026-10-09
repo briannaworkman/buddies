@@ -1,7 +1,7 @@
 {
   "name": "buddy",
   "version": "1.2.0",
-  "description": "A pixel-art companion above your prompt: reacts to your session, grows up, unlocks accessories, watches your PRs, Slack mentions and meetings, and can join a Buddy League leaderboard",
+  "description": "A pixel-art companion above your prompt: reacts to your session, grows up, unlocks accessories, watches your PRs, Slack mentions and meetings, and can post to a leaderboard with your friends",
   "author": {
     "name": "Bri Workman"
   },
@@ -13,10 +13,10 @@
       "description": "Only your PRs in this GitHub org count for approval reactions. Leave empty for all of your PRs.",
       "default": ""
     },
-    "leagueUrl": {
+    "leaderboardUrl": {
       "type": "string",
-      "title": "Buddy League page",
-      "description": "Optional: a leaderboard page that /buddy share points you to. Leave empty if you don't use one.",
+      "title": "Leaderboard page",
+      "description": "Optional: your leaderboard's link. /buddy leaderboard <link> sets it for you.",
       "default": ""
     },
     "watchSlack": {

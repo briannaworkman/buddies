@@ -1,6 +1,6 @@
 # Buddies
 
-A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, watches your PRs, Slack mentions and meetings, and can join a Buddy League leaderboard with your friends.
+A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, watches your PRs, Slack mentions and meetings, and can post to a shared leaderboard with your friends.
 
 <p align="center"><img src="docs/cast.svg" alt="All eighteen buddies: dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, skull, dragon, slime, rubber duck, capybara, octopus, bat and mushroom" width="100%"></p>
 
@@ -70,8 +70,10 @@ The terminal draws your buddy in three lines of text, tinted by rarity:
 | `/buddy adopt <species> [name]` | Hatch another buddy and swap it in (any species but the legendaries) |
 | `/buddy switch <name>` | Swap which buddy is in your band |
 | `/buddy season <month> <name>` | Make a buddy move in automatically that month (`off` to clear) |
-| `/buddy leaderboard` | Rank your own buddies |
-| `/buddy share` | Copy your buddy card for your Buddy League |
+| `/buddy roster` | Rank your own buddies |
+| `/buddy share` | Copy your buddy card to post on your leaderboard page |
+| `/buddy leaderboard <link>` · `/buddy leaderboard off` | Join a leaderboard (or leave it) |
+| `/buddy:new-leaderboard [name]` | Start your own leaderboard page |
 | `/buddy rename <name>` · `/buddy hide` · `/buddy show` | |
 
 ## Settings
@@ -79,7 +81,7 @@ The terminal draws your buddy in three lines of text, tinted by rarity:
 Change these in the plugin's settings (`/plugin`, then buddy):
 
 - **GitHub organization** (default: empty): only your PRs in this org count for approval reactions. Leave empty for all of your PRs.
-- **Buddy League page** (optional): a leaderboard page that `/buddy share` points you to. Leave empty if you don't use one.
+- **Leaderboard page** (optional): your leaderboard's link. `/buddy leaderboard <link>` sets it for you.
 - **Watch Slack mentions** (off by default): alert when you're mentioned in Slack.
 - **Watch calendar** (off by default): alert when a meeting starts in the next 10 minutes.
 
@@ -87,9 +89,19 @@ Change these in the plugin's settings (`/plugin`, then buddy):
 
 Turn on **Watch Slack mentions** or **Watch calendar** in the settings. Buddy then checks every 2 minutes, but only calls the connector when your settings already allow it, so it never pops a permission prompt. Add your Slack search and Calendar list-events tools to `permissions.allow` in `~/.claude/settings.json`, and run `/buddy` to see which ones it's still waiting on. The PR watcher is always on and needs the GitHub CLI (`gh`) signed in.
 
-## Optional: post to a league every day
+## Start a leaderboard
 
-If you and your friends keep a Buddy League page, `/buddy share` and pasting the card into it works any time. To post automatically, buddy keeps your latest card in `~/.claude/buddy/card.json`; a daily Claude scheduled task can read that file and update your entry on the league page. Post once by hand first so your entry exists.
+A leaderboard is a shared page where you and your friends post your buddies. It draws everyone's buddy, accessories and all, and ranks players by total xp. Leaderboards live on claude.ai, so everyone in one needs a claude.ai account.
+
+**Start one:** run `/buddy:new-leaderboard Office Pets` in Claude Code (any name works). Claude publishes a new leaderboard page to your claude.ai account, names it, and connects your buddy to it.
+
+**Invite friends:** open the leaderboard page's **Share** menu and add each friend **by email as an Editor**. Only people invited that way, or members of your own claude.ai organization, can post; anyone else with the link can only watch. Editors can also change the page, so invite people you trust. Then send them the link.
+
+**Join one:** install Buddies, then run `/buddy leaderboard <link>` with the link you were sent.
+
+**Post your buddy:** run `/buddy share` to copy your buddy card, open the leaderboard page, and paste it in with the name you want to show. Post again any time to update your spot; you keep the same place in the leaderboard.
+
+The leaderboard owner can rename the leaderboard and remove entries from the page itself. Buddy also keeps your latest card in `~/.claude/buddy/card.json` while you're on a leaderboard, if you'd like a scheduled task to post it for you.
 
 ## Make it yours
 
@@ -113,6 +125,8 @@ To edit by hand, these are the places to look:
 
 Each species' art is in `hooks/species.ts`: `ascii` is the terminal version, `rows` is a 16×16 grid of letters (one per pixel) for the desktop app, and `palette` maps the letters to colors. To add a species, add its name to `SpeciesName` in `types/index.d.ts`, then add an entry to `SPECIES` in `species.ts` and `HABITS` in `vocab.ts`. Type-checking flags whichever one is missing.
 
+The leaderboard page in `leaderboard/` uses the same sprites. After changing the art or `leaderboard/page.ts`, rebuild it with `node scripts/build-leaderboard.mjs`.
+
 The pictures in this README are drawn from the same sprites. After changing the art, redraw them with `npx tsx scripts/readme-art.ts`.
 
 `hooks/register.tsx` is the only file that talks to Claude Code. The other files are plain functions, covered by the tests in `tests/`. Run them with `claude plugin test ~/code/buddy`.
@@ -121,7 +135,7 @@ If a change breaks something, the transcript shows a dim line naming the problem
 
 ## Where your buddy lives
 
-Everything is stored by Claude Code on your own machine. Nothing leaves it unless you post to a league.
+Everything is stored by Claude Code on your own machine. Nothing leaves it unless you post to a leaderboard.
 
 ## License
 

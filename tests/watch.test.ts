@@ -48,7 +48,7 @@ test('meetings warn soon and now, skipping cancelled, declined and long-started 
 
 test('commands parse aliases and fall back to the card', () => {
   expect(parseCommand('say hi there')).toEqual({ verb: 'chat', args: ['hi', 'there'], rest: 'hi there' })
-  expect(parseCommand('roster').verb).toBe('leaderboard')
+  expect(parseCommand('roster').verb).toBe('roster')
   expect(parseCommand('').verb).toBeUndefined()
   expect(parseCommand('dance').verb).toBeUndefined()
   expect(COMMAND_DESCRIPTION).toContain('adopt <species> [name]')

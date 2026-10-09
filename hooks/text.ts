@@ -27,7 +27,7 @@ export function wardrobeText(roster: Roster, buddy: Buddy) {
   return [`${buddy.name}'s wardrobe:`, ...lines, 'Take it off: /buddy wear none'].join('\n')
 }
 
-export function leaderboardText(roster: Roster) {
+export function rosterText(roster: Roster) {
   const medals = ['🥇', '🥈', '🥉']
   const rows = [...roster.buddies]
     .sort((a, b) => b.xp - a.xp || b.pets - a.pets)
@@ -41,7 +41,7 @@ export function leaderboardText(roster: Roster) {
         .map(r => `${monthName(r.month)} → ${roster.buddies.find(b => b.id === r.id)?.name ?? '?'}`)
         .join(' · ')
     : 'none yet (/buddy season october <name>)'
-  return ['🏆 Buddy leaderboard (xp is earned while a buddy is the one in your band)', ...rows, `Seasons: ${seasons}`].join('\n')
+  return ['🐾 Your roster (xp is earned while a buddy is the one in your band)', ...rows, `Seasons: ${seasons}`].join('\n')
 }
 
 export function chatPersona(roster: Roster, buddy: Buddy, face: Face) {
@@ -62,9 +62,10 @@ export const COMMANDS = [
   { verbs: ['wear'], usage: 'wear <item>' },
   { verbs: ['adopt'], usage: 'adopt <species> [name]' },
   { verbs: ['switch'], usage: 'switch <name>' },
-  { verbs: ['leaderboard', 'roster'], usage: 'leaderboard' },
+  { verbs: ['roster'], usage: 'roster' },
   { verbs: ['season', 'seasons'], usage: 'season <month> <name>' },
   { verbs: ['share'], usage: 'share' },
+  { verbs: ['leaderboard'], usage: 'leaderboard <link>' },
   { verbs: ['rename'], usage: 'rename <name>' },
   { verbs: ['hide'], usage: 'hide' },
   { verbs: ['show'], usage: 'show' },
@@ -79,4 +80,15 @@ export function parseCommand(input: string): { verb: Verb | undefined; args: str
   const [word = '', ...args] = input.trim().split(/\s+/)
   const command = COMMANDS.find(c => (c.verbs as readonly string[]).includes(word))
   return { verb: command?.verbs[0], args, rest: args.join(' ') }
+}
+
+// A leaderboard page's link: a claude.ai artifact URL, query and fragment dropped.
+export function leaderboardLink(text: string): string | undefined {
+  try {
+    const url = new URL(text)
+    if (url.protocol !== 'https:' || url.hostname !== 'claude.ai' || !/^\/(code\/)?artifact\/[\w-]+\/?$/.test(url.pathname)) return undefined
+    return `${url.origin}${url.pathname.replace(/\/$/, '')}`
+  } catch {
+    return undefined
+  }
 }

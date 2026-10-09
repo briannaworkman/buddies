@@ -1,0 +1,190 @@
+<title>Buddy Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a scoreboard. Leaderboard name and standings (podium, then list) on the left; the join card and the owner's tools
+   stack below them, or, when the window is wide enough, sit in a right-hand column that starts level with the name and stays in view. */
+:root {
+  --bg: #eef0f6;
+  --panel: #ffffff;
+  --well: #e3e6f0;
+  --ink: #1d2133;
+  --muted: #5f6680;
+  --line: #d3d7e4;
+  --accent: #e8661f;
+  --gold: #b7860b;
+  --good: #1f7a4d;
+  --bad: #b3261e;
+  --mine: #fff4ea;
+  --silver: #6f7a8f;
+  --bronze: #a8643a;
+  --gold-step: #fbf1d6;
+  --silver-step: #eceff5;
+  --bronze-step: #f7e6da;
+  --display: 'Silkscreen', ui-monospace, monospace;
+  --body: 'Figtree', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #131624; --panel: #1c2034; --well: #252a42; --ink: #e9ebf5; --muted: #9ea5c2; --line: #2f3552;
+  --accent: #ff9a5c; --gold: #f2c14e; --good: #5fd39a; --bad: #ff8a80; --mine: #2a2433; --silver: #b9c2d6; --bronze: #e0996a; --gold-step: #3a321c; --silver-step: #2a2f45; --bronze-step: #3a2a22; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #131624; --panel: #1c2034; --well: #252a42; --ink: #e9ebf5; --muted: #9ea5c2; --line: #2f3552;
+  --accent: #ff9a5c; --gold: #f2c14e; --good: #5fd39a; --bad: #ff8a80; --mine: #2a2433; --silver: #b9c2d6; --bronze: #e0996a; --gold-step: #3a321c; --silver-step: #2a2f45; --bronze-step: #3a2a22; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); }
+main { max-width: 820px; margin: 0 auto; padding-inline: 18px; padding-block: 36px 64px; display: flex; flex-direction: column; gap: 28px; }
+.layout, .standings, .side { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
+.standings { gap: 20px; }
+@media (min-width: 1100px) {
+  main { max-width: 1240px; }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; gap: 32px; }
+  .side .card { padding: 16px 18px; gap: 10px; }
+  .side form { gap: 8px; }
+  .side { gap: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); max-height: calc(100vh - 40px); overflow-y: auto; }
+}
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+h1 { font-size: clamp(32px, 7vw, 54px); line-height: 1.05; }
+h2 { font-size: 20px; }
+p { margin: 0; }
+code { font: 600 14px var(--mono); background: var(--well); padding: 1px 6px; border-radius: 5px; }
+.eyebrow { font: 600 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+header { display: flex; flex-direction: column; gap: 6px; }
+.meta { color: var(--muted); }
+.note { color: var(--muted); background: var(--panel); border: 1px dashed var(--line); border-radius: 10px; padding: 18px; }
+
+/* Podium: 2nd, 1st, 3rd standing on steps of falling height */
+.podium { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; gap: 10px; }
+.place { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0; }
+.place .sprite { width: 104px; margin-bottom: 4px; }
+.place-1 .sprite { width: 136px; }
+.place .who { justify-content: center; }
+.place .buddy { font-size: 14px; }
+.place .stats { justify-content: center; margin-bottom: 8px; }
+.place .remove { margin-bottom: 8px; }
+.crown-mark { font-size: 22px; line-height: 1; }
+.step { width: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 10px; border-radius: 10px 10px 4px 4px; border: 1px solid var(--line); border-bottom-width: 4px; }
+.step-rank { font: 400 30px var(--display); }
+.place-1 .step { height: 132px; background: var(--gold-step); border-color: var(--gold); }
+.place-2 .step { height: 96px; background: var(--silver-step); border-color: var(--silver); }
+.place-3 .step { height: 68px; background: var(--bronze-step); border-color: var(--bronze); }
+.place-1 .step-rank { color: var(--gold); font-size: 40px; }
+.place-2 .step-rank { color: var(--silver); }
+.place-3 .step-rank { color: var(--bronze); }
+.place.is-mine .player { color: var(--accent); }
+.place.is-empty::after { content: ""; display: block; width: 100%; border-radius: 10px 10px 4px 4px; border: 1px dashed var(--line); }
+.place-2.is-empty::after { height: 96px; }
+.place-3.is-empty::after { height: 68px; }
+
+/* Board */
+.board { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.row { display: grid; grid-template-columns: 36px 96px minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 12px 12px; }
+.row.is-mine { background: var(--mine); border-color: var(--accent); }
+.rank { font: 400 22px var(--display); color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
+.sprite svg, .mini svg { display: block; width: 100%; height: auto; }
+.info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.who { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.player { font-weight: 700; font-size: 17px; overflow-wrap: anywhere; }
+.tag { font: 600 11px var(--body); letter-spacing: .05em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; }
+.tag-you { background: var(--accent); color: var(--panel); }
+.tag-legend { color: var(--gold); border: 1px solid var(--gold); }
+.buddy { color: var(--muted); overflow-wrap: anywhere; }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 13px var(--mono); font-variant-numeric: tabular-nums; }
+.stat.streak { color: var(--accent); }
+.stat.dim { color: var(--muted); font-weight: 400; }
+.shelf { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+.mini { width: 34px; }
+.more { font: 600 12px var(--mono); color: var(--muted); }
+.remove { font: 600 13px var(--body); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.remove:hover { color: var(--bad); border-color: var(--bad); }
+
+/* Join and owner cards */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+form { display: flex; flex-direction: column; gap: 10px; }
+label { font-weight: 600; font-size: 14px; }
+input, textarea { font: 15px var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; width: 100%; }
+textarea { font: 13px/1.4 var(--mono); min-height: 64px; resize: vertical; }
+.inline { display: flex; gap: 8px; flex-wrap: wrap; }
+.inline input { flex: 1 1 220px; width: auto; }
+button.primary { font: 700 15px var(--body); color: #fff; background: var(--accent); border: 0; border-radius: 8px; padding: 10px 18px; cursor: pointer; align-self: flex-start; }
+button.primary:disabled { opacity: .6; cursor: default; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.status { font-size: 14px; }
+.status:empty { display: none; }
+.status[data-kind="ok"] { color: var(--good); }
+.status[data-kind="error"] { color: var(--bad); }
+footer { color: var(--muted); font-size: 14px; }
+footer a { color: inherit; }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 28px 64px minmax(0, 1fr); padding-right: 12px; }
+  .remove { grid-column: 3; justify-self: start; }
+  .rank { font-size: 18px; }
+  .podium { gap: 6px; }
+  .place .sprite { width: 72px; }
+  .place-1 .sprite { width: 92px; }
+  .place .buddy { font-size: 12px; }
+  .place .stats { font-size: 11px; gap: 2px 8px; }
+  .place .player { font-size: 14px; }
+  .place .tag { font-size: 9px; padding: 1px 5px; }
+  .place-1 .step { height: 104px; }
+  .place-2 .step, .place-2.is-empty::after { height: 76px; }
+  .place-3 .step, .place-3.is-empty::after { height: 54px; }
+}
+@media (prefers-reduced-motion: reduce) { .sprite svg *, .mini svg * { animation: none !important; } }
+</style>
+
+<main>
+
+  <div class="layout">
+  <div class="standings">
+    <header>
+      <span class="eyebrow">Buddies leaderboard</span>
+      <h1 id="leaderboard-name">Buddy Leaderboard</h1>
+      <p class="meta"><span id="count">0 players</span>, ranked by total xp across all their buddies.</p>
+    </header>
+
+  <p class="note" id="offline" hidden>Open this page on claude.ai while signed in to see the leaderboard.</p>
+  <p class="note" id="loading">Loading the leaderboard…</p>
+  <p class="note" id="empty" hidden>No buddies here yet. Be the first to post your card.</p>
+  <ol class="podium" id="podium" aria-label="Top three" hidden></ol>
+  <ol class="board" id="board" aria-label="The rest of the leaderboard"></ol>
+  </div>
+
+  <aside class="side">
+
+  <section class="card" aria-labelledby="join-title">
+    <h2 id="join-title">Post your buddy</h2>
+    <p class="meta">Run <code>/buddy share</code> in <a href="https://github.com/briannaworkman/buddies">Buddies</a> and paste the card here. Post again any time to update your spot.</p>
+    <form id="join-form">
+      <label for="player">Your name on the leaderboard</label>
+      <input id="player" name="player" maxlength="32" autocomplete="nickname" required>
+      <label for="card">Buddy card</label>
+      <textarea id="card" name="card" placeholder="buddy-card {&quot;v&quot;:2,…}" spellcheck="false" required></textarea>
+      <button class="primary" id="post" type="submit">Post my card</button>
+    </form>
+    <p class="meta" id="join-readonly" hidden>You can watch this leaderboard, but posting needs an invite. Ask its owner to invite you by email as an Editor.</p>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="card" id="owner-panel" aria-labelledby="owner-title" hidden>
+    <h2 id="owner-title">Run your leaderboard</h2>
+    <p class="meta">Invite friends by email as <b>Editors</b> from the <b>Share</b> menu so they can post, then send them this page's link.</p>
+    <form id="rename-form">
+      <label for="rename-input">Leaderboard name</label>
+      <div class="inline">
+        <input id="rename-input" name="leaderboard-name" maxlength="48">
+        <button class="primary" type="submit">Rename</button>
+      </div>
+    </form>
+  </section>
+
+  </aside>
+  </div>
+
+  <footer>Made with <a href="https://github.com/briannaworkman/buddies">Buddies</a>, a pixel companion for Claude Code.</footer>
+</main>
+
+<script>"use strict";(()=>{var H=["Believe in your build pipeline","Dream big, compile bigger","The journey of a thousand lines begins with a single commit","Be the senior dev you wish you had","Fall seven times, rebase eight","Today is a good day to ship","Keep calm and clear the cache","Every expert was once a junior dev","Grit your teeth and git push","Bugs don't quit, neither do you","Fail fast, learn faster","Code clean, sleep sound","Never give up on the debugger","Don't stop until the linter is green","Small commits, big features","Your code is stronger than its worst bug","Every push is a new beginning","Progress over perfection, pass all tests","Believe you can fix it","Be fearless; your tests have your back","Your future self will thank your commit messages","Make today count; increment the version","Be the light that lints the darkness","Keep going; your breakpoint is near","Dare to be different; rename that variable","Hope is not a strategy; neither is hardcoding","Progress is one more green checkmark","Turn setbacks into postmortems with action items"],F=["Brewing chaos into code","Debugging destiny","Manifesting pixels at 3 AM","Turning coffee into commits","Stack overflowing with vibes","Praising the merge god","One bug closer to freedom","Embracing the red squiggles","Just as planned","Setting humor to 75%","Ringing the breakthrough bell","Knocking politely on segfaults","Quicksaving before disaster","Double jumping over deadlines","Grafting the perfect feature","The grind is holy and caffeinated","Golden spiral of clean architecture","The answer is coming after one more test","Oozing pure dev aura","Spiral crown of open tabs glowing","One sacred line of code closer","Reaching the basement of the call stack","Farming runes for that sweet PR","Checking the stack trace with vigor","Git gud slowly","Calibrating expectations","Reversing stupidity one commit at a time","Steelmanning bad ideas","Making beliefs pay rent in tests","Noticing confusion in the logs","Applying Bayes to bug reports","SCIENCE!-ing the impossible","To ship or not to ship","Every bug was once a feature","Nothing is permanent except technical debt","The real bug was inside us all along","What if the tests are testing us","I think therefore I refactor","The code works and nobody knows why","We debug therefore we are","Is it a feature or a cry for help","Every commit is a promise to your future self","The backlog stares back","Every merge conflict is a dialogue with the past","Pull requests beg for mercy","Do we write code, or does code write us","The cursor blinks, questioning our purpose","The blank screen, an infinite possibility","In the beginning, there was a TODO","We name things to postpone the chaos","If it works, it will be rewritten","The logs know more than we admit","There is no done, only deployed","fix: everything, hopefully","feat: something probably useful","feat: one more button","refactor: same bugs, new names","perf: feels faster anyway","style: appease the linter","test: works on my machine","ci: appease the pipeline gods","Cherry-picking the good parts","Stashing feelings for later","Detached HEAD, attached heart","Merge branch 'hope' into 'reality'","WIP: send help","Please work this time","One more commit ought to do it","This commit fixes the last fix","Fixing the fix that fixed the fix","The diff tells a story","squash: condense chaos into one"];var Ee=2*60*1e3;var C={common:{weight:60,mark:""},uncommon:{weight:25,color:"green",mark:"✧"},rare:{weight:10,color:"cyan",mark:"★"},legendary:{weight:5,color:"magenta",mark:"✦"}};var Ie={prompt:["Ooh, a new task!","On it! Well, Claude is.","Let's gooo","I believe in us."],done:["Done! Nice work.","Another one down!","*happy wiggle*",...H],fail:["Ouch, {tool} failed.","Uh oh. {tool} did not like that.","{tool} broke. It's fine. It's fine."],tests:["Tests passed! 🎉","All green!","The tests love you."],pet:["*purrs*","Hehe, thank you!","♥","*leans into it*"],idle:["...","*hums*","*stretches*",...F],sleepy:["zZz","*yawns*","Bedtime soon?"],grumpy:["Hmph.","No pets today?","*pointedly looks away*","*grumbles*"]},T={baby:{from:1,label:"baby"},grown:{from:5,label:"grown-up"},radiant:{from:10,label:"radiant"}},v=[{id:"bow",emoji:"🎀",name:"bow",hint:"pet your buddy",has:e=>e.pets>=1,pixels:{rows:["","","","","..........r.r","...........r","..........r.r"],colors:{r:"#e53935"}}},{id:"nightcap",emoji:"🌙",name:"nightcap",hint:"finish a turn after 10pm",has:(e,t)=>t.stats.nights>=1,pixels:{rows:["","............w","..........nn",".......nwnn",".....nwnwnwn"],colors:{n:"#3949ab",w:"#fafafa"}}},{id:"tophat",emoji:"🎩",name:"top hat",hint:"get one of your PRs approved",has:(e,t)=>t.stats.approvals>=1,pixels:{rows:["......kkkk","......kkkk","......kkkk","......rrrr","....kkkkkkkk"],colors:{k:"#212121",r:"#e53935"}}},{id:"cap",emoji:"🧢",name:"cap",hint:"a 7-day streak",has:(e,t)=>t.streak.best>=7,pixels:{rows:["","","",".....cccccc","....ccccccccccc"],colors:{c:"#1e88e5"}}},{id:"goggles",emoji:"🥽",name:"goggles",hint:"25 passing test runs",has:(e,t)=>t.stats.tests>=25,pixels:{rows:["","","","","","","...ggGGggGGgg"],colors:{g:"#6d4c41",G:"#80deea"}}},{id:"heart",emoji:"💗",name:"heart badge",hint:"50 pets",has:e=>e.pets>=50,pixels:{rows:["","","","","","","","","","","","",".........r.r",".........rrr","..........r"],colors:{r:"#e91e63"}}},{id:"headphones",emoji:"🎧",name:"headphones",hint:"20 turns in a single day",has:(e,t)=>t.focus.best>=20,pixels:{rows:["","","","....hhhhhhhh","...h........h","..h..........h","..h..........h",".cc..........cc",".cc..........cc",".cc..........cc"],colors:{h:"#424242",c:"#e53935"}}},{id:"sunglasses",emoji:"😎",name:"sunglasses",hint:"get 3 of your PRs approved",has:(e,t)=>t.stats.approvals>=3},{id:"crown",emoji:"👑",name:"crown",hint:"100 turns together",has:e=>e.xp>=100,pixels:{rows:["","",".....y.yy.y",".....yyyyyy",".....yryyry"],colors:{y:"#ffca28",r:"#e53935"}}}],W=e=>v.find(t=>t.id===e);var u=(...e)=>e.map(t=>t.length===8?t+[...t].reverse().join(""):t),p=[[5,8],[10,8]],m=[7,10],i="........";var x={dog:{ascii:["  ___  ","U({f})U"," (_u_)~"],rows:u(i,i,i,i,".....ooo","..aoobbb",".aaobbbb",".aaobbbb",".aaobbbb","..aobbln","...obbll","...obbbbbbbbo.o.","..obbllllllbbobo","..obbllllllbbo..","...obbo..obbo...","...oooo..oooo..."),palette:{o:"#6e4220",b:"#e3a85e",l:"#f8e2c0",a:"#9a5a2c",n:"#2b1d14"},eyes:p,mouth:m},cat:{ascii:[" /\\_/\\ ","( {f} )",' (")_)~'],rows:u(i,i,"..o.....","..oo....","..oaoooo","..obbbbd","..obbdbd","..obbbbb",".obbbbbb","wobbbbll","..obbbbl","...obbbbbbbbo..o","..obbllllllbbo.o","..obbllllllbboo.","...obbo..obbo...","...oooo..oooo..."),palette:{o:"#454a57",b:"#a3aab6",l:"#e6e9ee",a:"#f4a7b9",d:"#6c7383",w:"#c9ced8"},eyes:p,mouth:m},fox:{ascii:[" /\\_/\\ ","<({f})>","  \\v/~~"],rows:u(i,"..a.....","..aa....","..oba...","..obbooo","..obbbbb",".obbbbbb",".obbbbbb",".obbbbbb",".ollbbba","..olllll","...oolllllloo.o.","..obbllllllbbobo","..obbllllllbbolo","...oaao..oaao.o.","...oooo..oooo..."),palette:{o:"#7c3410",b:"#f28a3a",l:"#fff4e8",a:"#2b1a12"},eyes:p,mouth:m},redpanda:{ascii:[" (\\_/) ","=({f})="," (_ _)~"],rows:u(i,i,"..oo....",".olbo...",".olboooo","..obbbbb","..obblbb",".obbbbbb",".obbbbbb",".ollbbll","..olllll","...oaaaaaaaao.oo","..obaaaaaaaabobs","..obaaaaaaaaboso","...oaao..oaao.oo","...oooo..oooo..."),palette:{o:"#3b1d10",b:"#b8481f",l:"#f7efe6",a:"#5a2414",s:"#e6a774"},eyes:p,mouth:m},cow:{ascii:["  ^__^ "," ({f}) ","  (oo) "],rows:u(i,"....h......h....","....hh....hh....","....oooooooo....","oo.obbbbaaabo.oo","oaaobbbbaaaboaao",".ooobbbbbaabooo.","...obbbbbbbbo...","...obbbbbbbbo...","..ollllllllllo..","..olnllllllnlo..","..ollllllllllo..","...oolllllloo...","..obbaabbbbbbo..","...obbo..obbo...","...oaao..oaao..."),palette:{o:"#3a3a3a",b:"#fafafa",l:"#f5b5c3",a:"#2b2b2b",h:"#e8d8a8",n:"#a8606e"},eyes:p,mouth:[7,11],isWideMouth:!0},monkey:{ascii:[' .-"-. ',"o({f})o","  /_\\_@"],rows:u(i,i,i,i,".....ooo","...oobbb","..obbbbb","oaobllbb","oaobllll",".oobllll","..obllll","...obbbbbbbbo...","..obbllllllbboo.","..obbllllllbbo.o","...obbo..obbo.o.","...oooo..oooo.oo"),palette:{o:"#4a2c17",b:"#8b5a2b",l:"#ebc79c",a:"#d9a07a"},eyes:p,mouth:m},pufferfish:{ascii:[" ,^^^, ","<({f})<"," `vvv' "],rows:u(i,i,"...o..o.","....oooo","..oobbbb",".obbbbbb","oobbbbbb","aobbbbbb","aobbbbbb","oobbbbbb",".obbllll",".ollllll","..olllll","...ooooo","...o..o.",i),palette:{o:"#8a6a10",b:"#f7d046",l:"#fff4bf",a:"#f08a2c"},eyes:p,mouth:m},otter:{ascii:[" .---. ","( {f} )","-(___)-"],rows:u(i,i,i,"..oo....",".oaooooo","..obbbbb",".obbbbbb",".obbbbbb",".obbbbbb","wobbllln","..olllll","...oblll","..obllll","..obllll","...obbo.","...oooo."),palette:{o:"#4a3322",b:"#8c6446",l:"#ead6c0",a:"#c99c78",n:"#2b1d14",w:"#d8c2a8"},eyes:p,mouth:m},ghost:{ascii:["  .-.  "," ({f}) ","  \\/\\/ "],rows:u(i,i,i,".....ooo","...oobbb","..obbbbb",".obbbbbb",".obbbbbb",".obbbbbb","oobbbbbb",".obbbbbb",".obbbbbb",".obbbbbb",".obobbob",".o.o..o.",i),palette:{o:"#8f93b8",b:"#f3f4ff",l:"#ffffff",a:"#c9b8ff"},eyes:p,mouth:m},robot:{ascii:["  _A_  "," [{f}] "," /|=|\\ "],rows:u(".......a",".......o",".......o","...ooooo","..obbbbb","aaobssss",".oobssss","..obssss","..obssss","..obssss","..obbbbb","...ooooo","..obllla","..obllll","...obbo.","...oooo."),palette:{o:"#4f5d6b",b:"#a9b7c4",l:"#dfe7ee",a:"#ff6b5a",s:"#14202b"},eyes:p,mouth:[7,9],eyeColor:"#69f0ae"},skull:{ascii:[" .---. ","( {f} )"," |vvv| "],rows:u(i,i,i,"....oooo","..oobbbb",".obbbbbb",".obbdddb",".obbdddb",".obbdddb","..obbbbd","..obbbbb","...obaba","....oooo",i,i,i),palette:{o:"#5e5a52",b:"#f1ece0",l:"#e2dccb",a:"#bdb49c",d:"#2a2730"},eyes:p,mouth:m,eyeColor:"#7cf3ff",isLegendary:!0},dragon:{ascii:["/\\_^_/\\",">({f})<"," /vvv\\~"],rows:u(i,"...a....","...ao...","...aoooa","..obbbbb","o.obbbbb","wwobbbbb","wwobbbbb","wwobbbbb","w.obblll","..olllll","...oblll","..obllll","..obllll","...oaao.","...oooo."),palette:{o:"#1f4d3a",b:"#3fae6a",l:"#d2f2a8",a:"#f2c14e",w:"#2c7d55"},eyes:p,mouth:m,isLegendary:!0},slime:{ascii:[" ,---. ","( {f} )","`~~~~~'"],rows:u(i,i,i,i,i,"......oo","....oobb","...obbbb","..obwbbbbbbbbo..",".obwbbbbbbbbbbo.","obbbbbbb","obbbbbbb","obbbbbbb","obbbbbbb",".ooooooo",i),palette:{o:"#2f7a3a",b:"#72d36d",l:"#c8f5b0",w:"#effff0"},eyes:[[5,10],[10,10]],mouth:[7,12]},duck:{ascii:["   __  "," <({f})","  (___)"],rows:u(i,i,"........ooo.....",".....ooo","....obbb","...obbbb","...obbbb","...obbbb","...obbbb","...obbbb","..oobbbb",".obbbbbb","obbbbbbb","obblllbb",".obbbbbb","..oooooo"),palette:{o:"#b07d12",b:"#ffd83d",l:"#ffeea0",a:"#ff8a1c"},eyes:p,mouth:m,isBeak:!0},capybara:{ascii:[" n___n ","( {f} )","(__-__)"],rows:u(i,i,i,i,"...oo...","..oaoooo",".obbbbbb","obbbbbbb","obbbbbbb","obbbbddn","obbbdddd","obbbdddd","obbbbddd","obbbbbbb",".obbbbbb","..oo.oo."),palette:{o:"#4a3220",b:"#b07a46",d:"#8d5d33",a:"#7a5030",n:"#2e1e12"},eyes:[[4,8],[11,8]],mouth:[7,11]},octopus:{ascii:[" .---. ","( {f} )","/(/|\\)\\"],rows:u(i,i,i,".....ooo","...oobbb","..obbbbb","..obbbbb",".obbbbbb",".obbbbbb",".obbbbbb",".obbbbbb","..obbbbb","obbobbob","ob.ob.ob",".o..o..o",i),palette:{o:"#6b2d5c",b:"#d65db1",l:"#f7b2dd"},eyes:[[5,9],[10,9]],mouth:[7,11]},bat:{ascii:["/\\   /\\","\\({f})/",'  "v"  '],rows:u(i,"...o....","...oo...","...olo..","...olboo","o..obbbb","oo.obbbb","owoobbbb","owwobbbb","owwobbbb","ow.obbbb","o...obal","...oblll","....obll","....oooo",i),palette:{o:"#2a1f3d",b:"#5d4b7d",l:"#a491c8",a:"#ffffff",w:"#3f3159"},eyes:p,mouth:m},mushroom:{ascii:[" .-o-. ","(_o_o_)"," ({f}) "],rows:u(i,i,i,"....oooo","..oobbbb",".oblbbbb","obllbbll","obbbbbll","oaaaaaaa","...ossss","..osssss","..osssss","..osssss","..osssss","...oaaaa","....oooo"),palette:{o:"#7a1f1f",b:"#e8443a",l:"#fff6e8",a:"#e6d2b0",s:"#fff1dc"},eyes:[[5,11],[10,11]],mouth:[7,13]}};var O=Object.keys(x),be=O.filter(e=>x[e].isLegendary),j=e=>e in x;function le(e){let[[t,o],[n,a]]=e.eyes,l=e.eyeColor?"#ff4081":"#212121",s=(h,y)=>r(h-1,y-1,l,"",3,2)+r(h-1,y-1,"#90caf9");return s(t,o)+s(n,a)+r(t+2,o-1,l,"",n-t-3,1)}var ge=["","","","","","","","","","","","","..w.ww.ww.ww.w","..wwwwwwwwwwww","..wwwwwwwwwwww","...dddddddddd"],r=(e,t,o,n="",a=1,l=1)=>`<rect x="${e}" y="${t}" width="${a}" height="${l}" fill="${o}"${n?` ${n}`:""}/>`;function D(e,t){return e.flatMap((o,n)=>[...o].map((a,l)=>t[a]?r(l,n,t[a]):"")).join("")}function de(e,t){let o=e.eyeColor??"#1a1a1a",[n,a]=e.mouth,l='<animate attributeName="height" values="2;2;0.2;2" keyTimes="0;0.93;0.96;1" dur="4.5s" repeatCount="indefinite"/>',s=([d,c],P)=>{switch(t){case"happy":return r(d-1,c,o)+r(d,c-1,o)+r(d+1,c,o);case"love":return[[d-1,c-1],[d+1,c-1],[d-1,c],[d,c],[d+1,c],[d,c+1]].map(([re,se])=>r(re,se,"#e53935")).join("");case"sad":return r(d,c,o)+(P===0?r(d,c+1,"#64b5f6"):"");case"busy":return P===0?r(d,c,o):r(d,c-1,o,"",2,2);case"sleepy":case"blink":return r(d-1,c,o,"",2,1);case"grumpy":return r(d-1,c,o,"",2,1)+r(P===0?d-1:d,c-2,o)+r(P===0?d:d-1,c-1,o);default:return`<rect x="${d}" y="${c-1}" width="1" height="2" fill="${o}">${l}</rect>`}},h=e.eyes.map(s).join(""),y=t==="happy"||t==="love",M=y?r(e.eyes[0][0]-1,e.eyes[0][1]+1,"#f48fb1",'opacity="0.8"')+r(e.eyes[1][0]+1,e.eyes[1][1]+1,"#f48fb1",'opacity="0.8"'):"",S,G=e.palette.a??o;e.isBeak?S=r(n,a,G,"",2,1)+r(n,a+1,G,'opacity="0.7"',2,1):y?S=r(n-1,a,o)+r(n+2,a,o)+r(n,a+1,o,"",2,1):t==="sad"?S=r(n,a,o,"",2,1)+r(n-1,a+1,o)+r(n+2,a+1,o):t==="busy"||t==="sleepy"?S=r(n,a,o):t==="grumpy"||e.isWideMouth?S=r(n-1,a,o,"",4,1):S=r(n,a,o,"",2,1);let ae=t==="sleepy"?'<text x="13" y="3" font-size="3.5" font-family="monospace" fill="#90a4ae">z<animate attributeName="y" values="4;0" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="2.5s" repeatCount="indefinite"/></text>':"";return h+M+S+ae}function ce(e,t){return[[-1,3],[16,6],[0,13],[15,1],[17,12],[-2,8],[8,-1]].slice(0,e).map(([n,a],l)=>`<rect x="${n}" y="${a}" width="1" height="1" fill="${t}" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="2.4s" begin="${(l*.37).toFixed(2)}s" repeatCount="indefinite"/></rect>`).join("")}var ue={common:0,uncommon:0,rare:2,legendary:4};function q(e){let t=x[e.species],o=e.mood==="happy"||e.mood==="love",n=o?"0 0;0 -1.2;0 0":"0 0;0 0.4;0 0",a=W(e.wearing)?.pixels,l=ue[e.rarity]+(e.stage==="radiant"?3:0),s=e.stage==="radiant"||e.rarity==="legendary"?"#ffd54f":"#80deea",h=D(t.rows,t.palette)+de(t,e.mood)+(a?D(a.rows,a.colors):"")+(e.wearing==="sunglasses"?le(t):"")+(e.stage==="baby"?D(ge,{w:"#fff8e1",d:"#d7c39a"}):"");return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -2 22 19" shape-rendering="crispEdges"><g><animateTransform attributeName="transform" type="translate" values="${n}" dur="${o?"0.6s":"3s"}" repeatCount="indefinite"/>${h}</g>`+ce(l,s)+"</svg>"}var Y="buddy-card ",he=50,pe=24;var U=e=>typeof e=="string"&&v.some(t=>t.id===e),R=e=>typeof e=="number"&&Number.isFinite(e)&&e>=0?Math.min(Math.floor(e),1e9):void 0;function A(e){let t=e.trim();if(!t.startsWith(Y.trim()))return{error:"That doesn’t look like a buddy card. Run /buddy share in Claude Code and paste what it copies."};let o;try{o=JSON.parse(t.slice(Y.trim().length))}catch{return{error:"That card is incomplete. Copy it again with /buddy share and paste the whole line."}}let n=o;if(n?.v===1)return{error:"That card is from an older version of Buddies. Update the plugin, then run /buddy share again."};if(n?.v!==2||typeof n.id!="string"||!/^c-[a-z0-9-]{4,40}$/.test(n.id))return{error:"That card isn’t one this leaderboard can read. Run /buddy share again and paste the new card."};if(!Array.isArray(n.buddies)||!n.buddies.length||n.buddies.length>he)return{error:"That card has no buddies on it."};let a=[];for(let s of n.buddies){let h=R(s?.xp),y=R(s?.pets),M=typeof s?.name=="string"?s.name.trim().slice(0,pe):"";if(!M||!j(String(s?.species))||!(String(s?.rarity)in C)||h===void 0||y===void 0)return{error:"Part of that card is damaged. Copy it again with /buddy share."};a.push({name:M,species:s.species,rarity:s.rarity,xp:h,pets:y,wearing:U(s.wearing)?s.wearing:null,active:s.active===!0})}a.some(s=>s.active)||(a[0].active=!0);let l=n.streak;return{card:{v:2,id:n.id,buddies:a,streak:{count:R(l?.count)??0,best:R(l?.best)??0},items:Array.isArray(n.items)?[...new Set(n.items.filter(U))]:[],at:R(n.at)??0}}}var E=e=>Math.floor(Math.sqrt(e.xp))+1,N=e=>e>=T.radiant.from?"radiant":e>=T.grown.from?"grown":"baby",K=e=>`lvl ${E(e)} ${T[N(E(e))].label}`;var _="buddies-leaderboard-mine",J=32,Z=48,g=e=>document.getElementById(e),b=(e,t,o)=>{let n=document.createElement(e);return t&&(n.className=t),o!==void 0&&(n.textContent=o),n};function me(){try{return localStorage.getItem(_)}catch{return null}}function Q(e){try{e?localStorage.setItem(_,e):localStorage.removeItem(_)}catch{}}var I=e=>e.buddies.reduce((t,o)=>t+o.xp,0),$=e=>e.buddies.find(t=>t.active)??e.buddies[0],fe=e=>e.buddies.some(t=>t.rarity==="legendary"),X=e=>({redpanda:"red panda",duck:"rubber duck"})[e]??e;function z(e,t="idle",o="sprite"){let n=b("div",o);return n.innerHTML=q({species:e.species,mood:t,stage:N(E(e)),rarity:e.rarity,wearing:e.wearing}),n.setAttribute("role","img"),n.setAttribute("aria-label",`${e.name} the ${X(e.species)}`),n}function ye(e){if(!e)return"";let t=Math.round((Date.now()-e)/6e4);if(t<2)return"just now";if(t<60)return`${t} min ago`;let o=Math.round(t/60);if(o<24)return`${o} h ago`;let n=Math.round(o/24);return n===1?"yesterday":`${n} days ago`}function we(e){if(!e||typeof e.card!="object"||!e.card)return;let t=A(`buddy-card ${JSON.stringify(e.card)}`);if(!("card"in t))return;let o=typeof e.player=="string"?e.player.trim().slice(0,J):"";return{card:t.card,player:o,postedAt:typeof e.postedAt=="number"?e.postedAt:t.card.at}}var f=null,L=!1,B=null,V=[],k=me();function ee(e){let t=b("div","who");return t.append(b("span","player",e.player||"Someone")),e.card.id===k&&t.append(b("span","tag tag-you","you")),fe(e.card)&&t.append(b("span","tag tag-legend","✦ legendary")),t}function te(e){let t=C[e.rarity].mark;return b("div","buddy",`${e.name} the ${X(e.species)}${t?` ${t}`:""} · ${K(e)}`)}function oe(e){if(!f||!(L||e.card.id===k))return[];let t=b("button","remove","Remove");return t.type="button",t.setAttribute("aria-label",`Remove ${e.player||"this player"} from the leaderboard`),t.addEventListener("click",()=>void Ce(e,t)),[t]}function ke(e,t){let o=$(e.card),n=b("li",`place place-${t}`);e.card.id===k&&n.classList.add("is-mine"),n.setAttribute("aria-label",`${["First","Second","Third"][t-1]} place`),t===1&&n.append(b("div","crown-mark","👑"));let a=b("div","stats");a.append(b("span","stat",`${I(e.card)} xp`),b("span","stat streak",`🔥 ${e.card.streak.count}`)),n.append(z(o,t===1?"happy":"idle"),ee(e),te(o),a,...oe(e));let l=b("div","step");return l.append(b("span","step-rank",String(t))),n.append(l),n}function Se(e,t){let o=$(e.card),n=b("li","row");e.card.id===k&&n.classList.add("is-mine");let a=b("div","info"),l=b("div","stats");l.append(b("span","stat",`${I(e.card)} xp`),b("span","stat streak",`🔥 ${e.card.streak.count}`),b("span","stat",`${e.card.items.length}/${v.length} items`),b("span","stat dim",ye(e.postedAt))),a.append(ee(e),te(o),l);let s=e.card.buddies.filter(h=>h!==o);if(s.length){let h=b("div","shelf");h.append(...s.slice(0,8).map(y=>z(y,"idle","mini"))),s.length>8&&h.append(b("span","more",`+${s.length-8}`)),a.append(h)}return n.append(b("div","rank",String(t)),z(o),a,...oe(e)),n}function ne(){let e=[...V].sort((n,a)=>I(a.card)-I(n.card)||a.card.streak.count-n.card.streak.count);g("count").textContent=e.length===1?"1 player":`${e.length} players`,g("empty").hidden=e.length>0;let t=e.slice(0,3),o=g("podium");o.hidden=t.length===0,o.replaceChildren(...[2,1,3].map(n=>{let a=t[n-1];return a?ke(a,n):b("li",`place place-${n} is-empty`)})),g("board").replaceChildren(...e.slice(3).map((n,a)=>Se(n,a+4)))}function w(e,t=""){let o=g("status");o.textContent=e,o.dataset.kind=t}async function ve(e){if(e.preventDefault(),!f)return;let t=g("player").value.trim().slice(0,J),o=A(g("card").value);if(!t)return w("Add the name you want to show on the leaderboard.","error");if("error"in o)return w(o.error,"error");let n=g("post");n.disabled=!0;try{await f.doc(`members/${o.card.id}`).set({card:o.card,player:t,postedAt:Date.now()}),k=o.card.id,Q(k),g("card").value="",w(`Posted ${$(o.card).name}. Paste a fresh card any time to update your spot.`,"ok"),ne()}catch(a){let l=a?.code;l==="invalid_argument"?(B=!1,ie(),w("You can see this leaderboard but not post to it yet. Ask its owner to invite you by email as an Editor.","error")):w(l==="quota_exceeded"?"This leaderboard is full. Ask its owner to remove old entries.":"Couldn’t post just now. Try again in a moment.","error")}finally{n.disabled=!1}}async function Ce(e,t){t.disabled=!0;try{await f.doc(`members/${e.card.id}`).delete(),e.card.id===k&&(k=null,Q(null))}catch{t.disabled=!1,w("Couldn’t remove that entry. Try again in a moment.","error")}}function ie(){g("join-form").hidden=B===!1||!f,g("join-readonly").hidden=B!==!1}function xe(){f.doc("meta/leaderboard").onSnapshot(e=>{let t=e.exists&&typeof e.data()?.name=="string"?String(e.data()?.name).slice(0,Z):"";g("leaderboard-name").textContent=t||"Buddy Leaderboard",document.title=t||"Buddy Leaderboard",g("rename-input").placeholder=t||"Buddy Leaderboard"},()=>{})}async function Re(e){e.preventDefault();let t=g("rename-input"),o=t.value.trim().slice(0,Z);if(o)try{await f.doc("meta/leaderboard").set({name:o}),t.value=""}catch{w("Couldn’t rename the leaderboard. Try again in a moment.","error")}}async function Me(){g("join-form").addEventListener("submit",ve),g("rename-form").addEventListener("submit",Re),f=await claude.use("db");let e=await claude.use("user");if(L=await e?.isOwner()??!1,B=await e?.can("data.write")??null,g("owner-panel").hidden=!L,g("offline").hidden=!!f,ie(),!f){g("loading").hidden=!0;return}xe(),f.collection("members").onSnapshot(t=>{V=t.docs.map(o=>we(o.data())).filter(o=>!!o),g("loading").hidden=!0,ne()},t=>{g("loading").hidden=!0,t.code!=="revoked"&&w("The leaderboard stopped updating. Reload the page to see the latest.","error")})}Me();})();</script>

@@ -39,6 +39,8 @@ export type Roster = {
   seasons: { month: number; id: string }[]
   // `YYYY-M` of the last month the season schedule picked a buddy.
   seasonApplied?: string
+  // Identifies your entry on leaderboard pages; made once and kept.
+  cardId?: string
 }
 
 export type Mood = { face: Face; line?: string; until: number }

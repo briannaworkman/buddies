@@ -110,16 +110,3 @@ export function greeting(progress: Progress, now = new Date()): string {
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december']
 export const monthOf = (word: string) => (word ? MONTHS.findIndex(m => m.startsWith(word.toLowerCase())) + 1 : 0)
 export const monthName = (n: number) => (MONTHS[n - 1] ?? '').replace(/^./, c => c.toUpperCase())
-
-export function buildCard(roster: Roster, now = Date.now()) {
-  return {
-    v: 1,
-    buddies: roster.buddies.map(b => ({
-      name: b.name, species: b.species, rarity: b.rarity, xp: b.xp, pets: b.pets,
-      wearing: b.wearing, active: b.id === roster.activeId,
-    })),
-    streak: { count: roster.progress.streak.count, best: roster.progress.streak.best },
-    items: roster.progress.items,
-    at: now,
-  }
-}

@@ -8,10 +8,11 @@ import type { Buddy, Face, Progress, Roster, Watch } from '../types'
 import { buddyAscii, buddySvg, isLegendarySpecies, isSpecies, SPECIES_NAMES } from './art'
 import { ALERT_MS, BLINK_MS, type Item, itemOf, LINES, MOOD_MS, RARITY, STAGES, WATCH_MS } from './data'
 import {
-  activeBuddy, buildCard, bumpStreak, countTurn, currentMonth, findBuddy, greeting, hatch, idleFace,
+  activeBuddy, bumpStreak, countTurn, currentMonth, findBuddy, greeting, hatch, idleFace,
   level, levelLabel, monthName, monthOf, newRoster, newUnlocks, pick, stageOf, thisMonth, title,
 } from './pet'
-import { buddyNames, cardText, chatPersona, COMMAND_DESCRIPTION, leaderboardText, parseCommand, wardrobeText } from './text'
+import { buildCard, cardLine, newCardId } from './card'
+import { buddyNames, cardText, leaderboardLink, chatPersona, COMMAND_DESCRIPTION, parseCommand, rosterText, wardrobeText } from './text'
 import { HABITS, WORKING } from './vocab'
 import { calendarWindow, prChanges, prQuery, slackMentions, slackUserId, upcomingMeetings } from './watch'
 
@@ -25,7 +26,7 @@ const MAX_NAME = 24
 // How many Slack and Calendar alerts to remember so they aren't repeated.
 const SEEN_MAX = 200
 
-type Config = { githubOrg: string; leagueUrl: string; watchSlack: boolean; watchCalendar: boolean }
+type Config = { githubOrg: string; leaderboardUrl: string; watchSlack: boolean; watchCalendar: boolean }
 
 // ── Roster and mood ──────────────────────────────────────────────────────────
 
@@ -110,9 +111,9 @@ async function applySeason($: EngineInterface) {
   if (rule && roster.buddies.some(b => b.id === rule.id)) await switchTo($, rule.id, `${monthName(rule.month)} buddy`)
 }
 
-// Kept for a daily "post buddy to the league" scheduled task, so only written when a league is set.
+// Kept for a daily "post buddy to the leaderboard" scheduled task, so only written when you're on a leaderboard.
 async function writeCardFile($: EngineInterface, config: Config) {
-  if (!config.leagueUrl) return
+  if (!config.leaderboardUrl) return
   const roster = await getRoster($)
   const home = await $.env.get('HOME')
   if (!roster || !home) return
@@ -298,14 +299,14 @@ async function runCommand($: EngineInterface, input: string, roster: Roster, con
       return `Switched to ${target.name}.`
     }
 
-    case 'leaderboard':
-      return leaderboardText(roster)
+    case 'roster':
+      return rosterText(roster)
 
     case 'season': {
       const [monthWord = '', ...nameWords] = args
       const month = monthOf(monthWord)
       const name = nameWords.join(' ')
-      if (!month) return 'Usage: /buddy season <month> <name>, or /buddy season <month> off. See them all with /buddy leaderboard.'
+      if (!month) return 'Usage: /buddy season <month> <name>, or /buddy season <month> off. See them all with /buddy roster.'
       const others = roster.seasons.filter(r => r.month !== month)
       if (name.toLowerCase() === 'off') {
         await saveRoster($, { ...roster, seasons: others })
@@ -321,14 +322,34 @@ async function runCommand($: EngineInterface, input: string, roster: Roster, con
     }
 
     case 'share': {
-      const text = `buddy-card ${JSON.stringify(buildCard(roster))}`
-      const where = config.leagueUrl ? `the Buddy League: ${config.leagueUrl}` : "your Buddy League page (set its URL in the plugin's settings)"
+      const text = cardLine(buildCard(roster))
+      const where = config.leaderboardUrl
+        ? `your leaderboard: ${config.leaderboardUrl}`
+        : 'a leaderboard page. Join a friend\'s with /buddy leaderboard <link>, or start your own with /buddy:new-leaderboard'
       await writeCardFile($, config).catch(() => undefined)
       const copied = await $.ui.copy({ text })
       await say($, 'love', "Show them who's boss! 🏆")
       return copied.isCopied
         ? `Copied ${buddy.name}'s buddy card. Paste it into ${where}`
         : `Couldn't reach the clipboard. Copy this line and paste it into ${where}\n${text}`
+    }
+
+    case 'leaderboard': {
+      const link = args[0] ?? ''
+      if (!link) {
+        return config.leaderboardUrl
+          ? `Your leaderboard: ${config.leaderboardUrl}\nPost your buddy there with /buddy share. Leave it with /buddy leaderboard off.`
+          : 'You\'re not on a leaderboard yet. Join a friend\'s with /buddy leaderboard <link>, or start your own with /buddy:new-leaderboard.'
+      }
+      const url = link === 'off' ? '' : leaderboardLink(link)
+      if (url === undefined) return 'That doesn\'t look like a leaderboard link. It should look like https://claude.ai/artifact/…'
+      const { deny } = await $.config.set({ key: 'buddy.leaderboardUrl', value: url })
+      if (deny) return `Couldn't save the leaderboard link (${deny}). Set "Leaderboard page" under /plugin → buddy instead.`
+      // Claude Code reloads buddy with the new setting; until then this session uses it too.
+      config.leaderboardUrl = url
+      if (!url) return 'You left the leaderboard. /buddy share will still copy your card.'
+      await say($, 'love', 'A leaderboard! Let\'s go 🏆')
+      return `Joined the leaderboard at ${url}\nRun /buddy share and paste your card on that page.`
     }
 
     case 'rename': {
@@ -360,7 +381,7 @@ async function runCommand($: EngineInterface, input: string, roster: Roster, con
 export const register: Register = (on, options) => {
   const config: Config = {
     githubOrg: String(options.githubOrg ?? '').trim(),
-    leagueUrl: String(options.leagueUrl ?? '').trim(),
+    leaderboardUrl: String(options.leaderboardUrl ?? '').trim(),
     watchSlack: options.watchSlack === true,
     watchCalendar: options.watchCalendar === true,
   }
@@ -374,6 +395,7 @@ export const register: Register = (on, options) => {
       roster = newRoster()
       $.ui.toast(`🥚 Your buddy hatched: ${title(activeBuddy(roster))}!`)
     }
+    if (!roster.cardId) roster = { ...roster, cardId: newCardId() }
     await saveRoster($, roster)
     await applySeason($)
     await edit($, { progress: p => bumpStreak(p) })
