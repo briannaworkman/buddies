@@ -2,9 +2,9 @@
 
 A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, can watch your PRs, Slack mentions and meetings, and can post to a shared leaderboard with your friends.
 
-<p align="center"><img src="docs/cast.svg" alt="All eighteen buddies: dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, skull, dragon, slime, rubber duck, capybara, octopus, bat and mushroom" width="100%"></p>
-
 Your first session after installing hatches a random buddy: one of 16 species (dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, slime, rubber duck, capybara, octopus, bat, mushroom) at a random rarity (common 60%, uncommon 25%, rare 10%). The other 5% of the time you hatch a legendary: a dragon or a skull, which hatch no other way.
+
+<p align="center"><img src="docs/cast.svg" alt="All eighteen buddies: dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, skull, dragon, slime, rubber duck, capybara, octopus, bat and mushroom" width="100%"></p>
 
 ## Requirements
 
