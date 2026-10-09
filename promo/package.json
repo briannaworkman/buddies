@@ -6,7 +6,8 @@
     "studio": "remotion studio src/index.ts",
     "still": "remotion still src/index.ts Promo",
     "render": "remotion render src/index.ts Promo out/buddies-promo.mp4",
-    "thumbnail": "remotion still src/index.ts Thumbnail out/buddies-thumbnail.png"
+    "thumbnail": "remotion still src/index.ts Thumbnail out/buddies-thumbnail.png",
+    "social": "remotion still src/index.ts SocialPreview out/buddies-social-preview.png"
   },
   "dependencies": {
     "@remotion/cli": "4.0.527",

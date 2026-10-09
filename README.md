@@ -1,10 +1,17 @@
 # Buddies
 
-A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, watches your PRs, Slack mentions and meetings, and can post to a shared leaderboard with your friends.
+A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, can watch your PRs, Slack mentions and meetings, and can post to a shared leaderboard with your friends.
 
 <p align="center"><img src="docs/cast.svg" alt="All eighteen buddies: dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, skull, dragon, slime, rubber duck, capybara, octopus, bat and mushroom" width="100%"></p>
 
 Your first session after installing hatches a random buddy: one of 16 species (dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, slime, rubber duck, capybara, octopus, bat, mushroom) at a random rarity (common 60%, uncommon 25%, rare 10%). The other 5% of the time you hatch a legendary: a dragon or a skull, which hatch no other way.
+
+## Requirements
+
+- A recent version of Claude Code. Buddies is a Claude Code mod, a plugin that hooks into Claude Code itself; if `/buddy` doesn't show up after installing, update Claude Code.
+- The desktop app's Code tab for the pixel art. The terminal draws your buddy in text instead.
+- The GitHub CLI (`gh`), signed in, for PR alerts.
+- A claude.ai account for leaderboards.
 
 ## Install
 
@@ -15,9 +22,18 @@ At a Claude Code prompt, add the marketplace and install the plugin, picking the
 /plugin install buddy@buddies
 ```
 
-Or clone the repo somewhere you'll keep it (for example `~/code/buddies`) and run `/plugin install buddy --marketplace ~/code/buddies`.
+Your buddy hatches right away, or in your next session. To change how your buddy works, install from your own copy instead; see [Make it yours](#make-it-yours).
 
-Your buddy hatches right away, or in your next session.
+## Updating
+
+Buddies doesn't number its releases, so `/plugin update` reports that you're already up to date. To get the latest version, refresh the marketplace and reinstall:
+
+```bash
+claude plugin marketplace update buddies
+claude plugin uninstall buddy@buddies && claude plugin install buddy@buddies --scope user
+```
+
+Then run `/reload-plugins` in any open session. Your buddies and progress stay put, since Claude Code keeps them apart from the plugin's files.
 
 ## What it does
 
@@ -105,7 +121,17 @@ The leaderboard owner can rename the leaderboard and remove entries from the pag
 
 ## Make it yours
 
-Claude Code runs buddy straight from the folder you installed it from, so you can edit its files and run `/reload-plugins` to see the change. The easiest way is to open a Claude Code session in your buddy folder and ask, for example "make my buddy talk like a pirate" or "make my ghost purple".
+Installing from GitHub gives Claude Code its own copy, which the next update replaces. To make changes that stick, clone the repo and install from your clone, so Claude Code reads buddy straight from that folder:
+
+```bash
+git clone https://github.com/briannaworkman/buddies ~/code/buddies
+claude plugin uninstall buddy@buddies
+claude plugin marketplace remove buddies
+claude plugin marketplace add ~/code/buddies
+claude plugin install buddy@buddies --scope user
+```
+
+Your buddies and progress carry over. Now you can edit the files and run `/reload-plugins` to see each change. The easiest way is to open a Claude Code session in `~/code/buddies` and ask, for example "make my buddy talk like a pirate" or "make my ghost purple".
 
 To edit by hand, these are the places to look:
 
@@ -129,13 +155,18 @@ The leaderboard page in `leaderboard/` uses the same sprites. After changing the
 
 The pictures in this README are drawn from the same sprites. After changing the art, redraw them with `npx tsx scripts/readme-art.ts`.
 
-`hooks/register.tsx` is the only file that talks to Claude Code. The other files are plain functions, covered by the tests in `tests/`. Run them with `claude plugin test ~/code/buddy`.
+`hooks/register.tsx` is the only file that talks to Claude Code. The other files are plain functions, covered by the tests in `tests/`. Run them with `claude plugin test ~/code/buddies`.
 
-If a change breaks something, the transcript shows a dim line naming the problem, and `claude plugin validate ~/code/buddy` checks the plugin. Updating to a newer version replaces your edits, so keep a copy (or a git branch) of anything you've changed.
+If a change breaks something, the transcript shows a dim line naming the problem, and `claude plugin validate ~/code/buddies` checks the plugin. To pick up new versions later, commit your changes on a branch and run `git pull` in your clone.
 
 ## Where your buddy lives
 
-Everything is stored by Claude Code on your own machine. Nothing leaves it unless you post to a leaderboard.
+Claude Code stores your buddies and progress on your own machine. A few features talk to other services:
+
+- `/buddy chat` sends your message to Claude, the same as any prompt.
+- The PR watcher asks GitHub about your open PRs through `gh`.
+- Slack and Calendar alerts, once you turn them on, call those connectors.
+- Your buddy card leaves your machine only when you paste it on a leaderboard.
 
 ## License
 
