@@ -1,6 +1,8 @@
-# Buddy
+# Buddies
 
 A pixel-art companion that lives above your prompt in Claude Code. It reacts to your session, grows up as you work together, unlocks accessories, watches your PRs, Slack mentions and meetings, and can join a Buddy League leaderboard with your friends.
+
+<p align="center"><img src="docs/cast.svg" alt="All eighteen buddies: dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, skull, dragon, slime, rubber duck, capybara, octopus, bat and mushroom" width="100%"></p>
 
 Your first session after installing hatches a random buddy: one of 16 species (dog, cat, fox, red panda, cow, monkey, pufferfish, otter, ghost, robot, slime, rubber duck, capybara, octopus, bat, mushroom) at a random rarity (common 60%, uncommon 25%, rare 10%). The other 5% of the time you hatch a legendary: a dragon or a skull, which hatch no other way.
 
@@ -13,7 +15,7 @@ At a Claude Code prompt, add the marketplace and install the plugin, picking the
 /plugin install buddy@buddies
 ```
 
-Or clone the repo somewhere you'll keep it (for example `~/code/buddy`) and run `/plugin install buddy --marketplace ~/code/buddy`.
+Or clone the repo somewhere you'll keep it (for example `~/code/buddies`) and run `/plugin install buddy --marketplace ~/code/buddies`.
 
 Your buddy hatches right away, or in your next session.
 
@@ -26,6 +28,35 @@ Your buddy hatches right away, or in your next session.
 - **Accessories** you unlock and wear: 🎀 bow, 🌙 nightcap, 🎩 top hat, 🧢 cap, 🥽 goggles, 💗 heart badge, 🎧 headphones, 😎 sunglasses, 👑 crown.
 - **Watches** your open PRs for approvals and requested changes, your Slack mentions, and meetings starting in the next 10 minutes.
 - **Pixel art** in the desktop app; ASCII art in the terminal.
+
+### Moods
+
+Its face follows what's happening in your session.
+
+<img src="docs/moods.svg" alt="The dog in each mood: idle, happy, love, sad, busy, sleepy and grumpy" width="100%">
+
+### Growing up
+
+Buddies start in their eggshell, grow up at level 5 and turn radiant at level 10. Rare buddies sparkle, and legendaries sparkle gold.
+
+<img src="docs/growth.svg" alt="A fox as a baby, grown-up, rare and radiant, and a legendary dragon" width="100%">
+
+### Wardrobe
+
+Nine accessories, each unlocked by something you do together. `/buddy items` shows how to earn the ones you haven't found yet.
+
+<img src="docs/wardrobe.svg" alt="The cat wearing each accessory: bow, nightcap, top hat, cap, goggles, heart badge, headphones, sunglasses and crown" width="100%">
+
+### In the terminal
+
+The terminal draws your buddy in three lines of text, tinted by rarity:
+
+```
+ /\_/\     ^__^     n___n     /\_^_/\
+<(o.o)>   (o.o)    ( o.o )   >(^.^)<
+  \v/~~    (oo)    (__-__)    /vvv\~
+  fox      cow    capybara   dragon
+```
 
 ## Commands
 
@@ -81,6 +112,8 @@ To edit by hand, these are the places to look:
 | What counts as a test run | the `isTest` check in `hooks/register.tsx` |
 
 Each species' art is in `hooks/species.ts`: `ascii` is the terminal version, `rows` is a 16×16 grid of letters (one per pixel) for the desktop app, and `palette` maps the letters to colors. To add a species, add its name to `SpeciesName` in `types/index.d.ts`, then add an entry to `SPECIES` in `species.ts` and `HABITS` in `vocab.ts`. Type-checking flags whichever one is missing.
+
+The pictures in this README are drawn from the same sprites. After changing the art, redraw them with `npx tsx scripts/readme-art.ts`.
 
 `hooks/register.tsx` is the only file that talks to Claude Code. The other files are plain functions, covered by the tests in `tests/`. Run them with `claude plugin test ~/code/buddy`.
 
