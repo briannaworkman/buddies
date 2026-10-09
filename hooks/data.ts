@@ -19,7 +19,13 @@ export const RARITY: Record<Rarity, { weight: number; color?: string; mark: stri
   legendary: { weight: 5, color: 'magenta', mark: '✦' },
 }
 
-export const NAMES = ['Pip', 'Mochi', 'Biscuit', 'Nori', 'Waffles', 'Pixel', 'Sprout', 'Bean', 'Tofu', 'Gizmo', 'Pebble', 'Noodle']
+// A new buddy hatches with one of these at random. Short and cute, and they fit any species.
+export const NAMES = [
+  'Pip', 'Mochi', 'Biscuit', 'Nori', 'Waffles', 'Pixel', 'Sprout', 'Bean', 'Tofu', 'Gizmo', 'Pebble', 'Noodle',
+  'Dumpling', 'Pickle', 'Muffin', 'Peanut', 'Clover', 'Juniper', 'Maple', 'Fig', 'Olive', 'Pudding',
+  'Sesame', 'Ziggy', 'Bubbles', 'Button', 'Cricket', 'Doodle', 'Hazel', 'Kiwi', 'Lentil', 'Marble',
+  'Nugget', 'Pumpkin', 'Rascal', 'Sushi', 'Toast', 'Wobble', 'Yuzu', 'Zuzu',
+]
 
 export const LINES = {
   prompt: ['Ooh, a new task!', 'On it! Well, Claude is.', "Let's gooo", 'I believe in us.'],
@@ -29,7 +35,7 @@ export const LINES = {
   pet: ['*purrs*', 'Hehe, thank you!', '♥', '*leans into it*'],
   idle: ['...', '*hums*', '*stretches*', ...IDLE],
   sleepy: ['zZz', '*yawns*', 'Bedtime soon?'],
-  grumpy: ['Hmph.', 'No pets today?', '*pointedly looks away*'],
+  grumpy: ['Hmph.', 'No pets today?', '*pointedly looks away*', '*grumbles*'],
 }
 
 export const STAGES: Record<Stage, { from: number; label: string }> = {
