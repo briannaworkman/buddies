@@ -1,0 +1,14 @@
+{
+  "name": "buddies",
+  "owner": {
+    "name": "Bri Workman"
+  },
+  "plugins": [
+    {
+      "name": "buddy",
+      "source": "./",
+      "description": "A pixel-art companion above your prompt that reacts to your session, grows up and unlocks accessories"
+    }
+  ],
+  "description": "Buddy, a pixel-art companion mod for Claude Code"
+}

@@ -1,0 +1,36 @@
+{
+  "name": "buddy",
+  "version": "1.2.0",
+  "description": "A pixel-art companion above your prompt: reacts to your session, grows up, unlocks accessories, watches your PRs, Slack mentions and meetings, and can join a Buddy League leaderboard",
+  "author": {
+    "name": "Bri Workman"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "githubOrg": {
+      "type": "string",
+      "title": "GitHub organization",
+      "description": "Only your PRs in this GitHub org count for approval reactions. Leave empty for all of your PRs.",
+      "default": ""
+    },
+    "leagueUrl": {
+      "type": "string",
+      "title": "Buddy League page",
+      "description": "Optional: a leaderboard page that /buddy share points you to. Leave empty if you don't use one.",
+      "default": ""
+    },
+    "watchSlack": {
+      "type": "boolean",
+      "title": "Watch Slack mentions",
+      "description": "Alert when you're mentioned in Slack. Needs a Slack connector and an allow rule for its search tool.",
+      "default": false
+    },
+    "watchCalendar": {
+      "type": "boolean",
+      "title": "Watch calendar",
+      "description": "Alert when a meeting starts in the next 10 minutes. Needs a Google Calendar connector and an allow rule for its list-events tool.",
+      "default": false
+    }
+  },
+  "license": "MIT"
+}
