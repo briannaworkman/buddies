@@ -26,14 +26,14 @@ Your buddy hatches right away, or in your next session. To change how your buddy
 
 ## Updating
 
-Buddies doesn't number its releases, so `/plugin update` reports that you're already up to date. To get the latest version, refresh the marketplace and reinstall:
+To get the latest release, refresh the marketplace and update the plugin:
 
 ```bash
 claude plugin marketplace update buddies
-claude plugin uninstall buddy@buddies && claude plugin install buddy@buddies --scope user
+claude plugin update buddy@buddies
 ```
 
-Then run `/reload-plugins` in any open session. Your buddies and progress stay put, since Claude Code keeps them apart from the plugin's files.
+Then run `/reload-plugins` in any open session. Your buddies and progress stay put, since Claude Code keeps them apart from the plugin's files. Each release is listed on the [releases page](https://github.com/briannaworkman/buddies/releases).
 
 ## What it does
 

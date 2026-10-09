@@ -1,6 +1,6 @@
 {
   "name": "buddy",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "description": "A pixel-art companion above your prompt: reacts to your session, grows up, unlocks accessories, watches your PRs, Slack mentions and meetings, and can post to a leaderboard with your friends",
   "author": {
     "name": "Bri Workman"
